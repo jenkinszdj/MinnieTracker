@@ -4,13 +4,12 @@ import sqlite3
 import logging
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)  # Enable debug logging
+logging.basicConfig(level=logging.DEBUG)
 
 def init_db():
     try:
         with sqlite3.connect("dog_log.db") as conn:
             cursor = conn.cursor()
-            logging.debug("Creating table logs (if not exists)")
             cursor.execute('''CREATE TABLE IF NOT EXISTS logs (
                           id INTEGER PRIMARY KEY AUTOINCREMENT,
                           timestamp TEXT,
@@ -20,6 +19,10 @@ def init_db():
     except sqlite3.Error as e:
         logging.error(f"Database initialization error: {e}")
 
+@app.before_first_request
+def initialize():
+    init_db()
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -28,7 +31,7 @@ def index():
 def log_event():
     event = request.json.get('event')
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
+
     try:
         with sqlite3.connect("dog_log.db") as conn:
             cursor = conn.cursor()
@@ -73,7 +76,7 @@ def get_logs():
         logging.error(f"Error getting logs: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/test_db')  # Temporary test route
+@app.route('/test_db')
 def test_db():
     try:
         with sqlite3.connect("dog_log.db") as conn:
@@ -92,5 +95,4 @@ def test_db():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
