@@ -19,9 +19,7 @@ def init_db():
     except sqlite3.Error as e:
         logging.error(f"Database initialization error: {e}")
 
-@app.before_first_request
-def initialize():
-    init_db()
+init_db() # Initialize database when app is created
 
 @app.route('/')
 def index():
